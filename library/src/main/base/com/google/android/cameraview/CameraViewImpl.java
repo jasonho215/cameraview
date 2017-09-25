@@ -16,6 +16,8 @@
 
 package com.google.android.cameraview;
 
+import android.util.Range;
+import android.util.Rational;
 import android.view.View;
 
 import java.util.Set;
@@ -68,6 +70,12 @@ abstract class CameraViewImpl {
     abstract void takePicture();
 
     abstract void setDisplayOrientation(int displayOrientation);
+
+    abstract void setBrightness(int value);
+
+    abstract int getBrightness();
+
+    abstract double getEVStep();
 
     interface Callback {
 

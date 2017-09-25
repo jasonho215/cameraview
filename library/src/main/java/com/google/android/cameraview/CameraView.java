@@ -399,6 +399,18 @@ public class CameraView extends FrameLayout {
         return mImpl.getFlash();
     }
 
+    public void setBrightness(int value) {
+        mImpl.setBrightness(value);
+    }
+
+    public int getBrightness() {
+        return mImpl.getBrightness();
+    }
+
+    public double getEVStep() {
+        return mImpl.getEVStep();
+    }
+
     /**
      * Take a picture. The result will be returned to
      * {@link Callback#onPictureTaken(CameraView, byte[])}.

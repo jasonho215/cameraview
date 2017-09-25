@@ -19,6 +19,7 @@ package com.google.android.cameraview;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Paint;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -32,6 +33,8 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.Range;
+import android.util.Rational;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
@@ -196,6 +199,8 @@ class Camera2 extends CameraViewImpl {
 
     private int mDisplayOrientation;
 
+    private int mBrightness;
+
     Camera2(Callback callback, PreviewImpl preview, Context context) {
         super(callback, preview);
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -330,6 +335,46 @@ class Camera2 extends CameraViewImpl {
     @Override
     int getFlash() {
         return mFlash;
+    }
+
+    @Override
+    void setBrightness(int value) {
+        Range<Integer> controlAECompensationRange = mCameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+        Rational aeCompensationStep = mCameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP);
+        if (controlAECompensationRange != null) {
+            int brightness = (int) (value / aeCompensationStep.doubleValue());
+            int brightnessSet = controlAECompensationRange.clamp(brightness);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, brightnessSet);
+            int saved = mBrightness;
+            if (mPreviewRequestBuilder != null) {
+                updateFlash();
+                if (mCaptureSession != null) {
+                    try {
+                        mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(),
+                                mCaptureCallback, null);
+                    } catch (CameraAccessException e) {
+                        mBrightness = saved; // Revert
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    int getBrightness() {
+        Range<Integer> controlAECompensationRange = mCameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+        Rational aeCompensationStep = mCameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP);
+        int raw = mPreviewRequestBuilder.get(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION);
+        if (controlAECompensationRange != null && !aeCompensationStep.isZero()) {
+            int brightnessEv = (int) (raw * aeCompensationStep.doubleValue());
+            return brightnessEv;
+        }
+        return 0;
+    }
+
+    @Override
+    double getEVStep() {
+        return mCameraCharacteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP).doubleValue();
     }
 
     @Override

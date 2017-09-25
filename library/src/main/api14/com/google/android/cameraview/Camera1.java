@@ -21,9 +21,12 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Build;
 import android.support.v4.util.SparseArrayCompat;
+import android.util.Range;
+import android.util.Rational;
 import android.view.SurfaceHolder;
 
 import java.io.IOException;
+import java.lang.annotation.IncompleteAnnotationException;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -215,6 +218,22 @@ class Camera1 extends CameraViewImpl {
     @Override
     int getFlash() {
         return mFlash;
+    }
+
+    @Override
+    void setBrightness(int value) {
+        // TODO: 25/9/2017 implement the method
+    }
+
+    @Override
+    int getBrightness() {
+        // TODO: 25/9/2017 implement the method
+        return 0;
+    }
+
+    @Override
+    double getEVStep(){
+        return Double.NaN;
     }
 
     @Override
